@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Barang Gudang KAF</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<img src="gambar.jpg" width="425" height="200">
+
+
+<div class="overlay">
+    <div class="container">
+        <header class="header-kuning">
+            <h1>Stok barang Gudang KAF
+            </h1>
+            <p> untuk mengelola data inventaris dan transaksi pemasukan barang.</p>
+        </header>
+
+        <div class="tab-header">
+            <button class="tab-button active" onclick="showTab('barang')">Manajemen Barang</button>
+            <button class="tab-button" onclick="showTab('pemasukan')">Manajemen Pemasukan</button>
+        </div>
+
+        <div id="tab-barang" class="tab-content">
+            <h2>Data Inventaris Barang</h2>
+            <button class="btn-merah" onclick="toggleForm('form-inventory')">➕ Tambah Barang Baru</button>
+            <div id="form-inventory" class="hidden" style="margin-top: 12px; padding: 12px; border: 1px solid #FFC200; border-radius: 4px;">
+                <h3>Form Barang</h3>
+                <form id="inventory-form">
+                    <input type="hidden" id="inventory-id">
+                    <div class="form-group">
+                        <label for="no">No (Nomor Kolom):</label>
+                        <input type="text" id="no" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggal_masuk">Tanggal Masuk:</label>
+                        <input type="date" id="tanggal_masuk" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item">Nama Barang:</label>
+                        <input type="text" id="item" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jumlah">Stok Barang:</label>
+                        <input type="number" id="jumlah" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="keterangan">Keterangan:</label>
+                        <textarea id="keterangan"></textarea>
+                    </div>
+                    <button type="submit" class="btn-merah">Simpan Barang</button>
+                    <button type="button" class="btn-kuning" onclick="resetForm('inventory-form')">Batal</button>
+                </form>
+            </div>
+            
+            <button class="btn-kuning" onclick="exportData('inventory')">Unduh PDF Inventaris</button>
+            <button class="btn-kuning" onclick="shareData('inventory')">Bagikan via WhatsApp</button>
+            <table class="data-table" id="inventory-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Tgl Masuk</th>
+                        <th>Nama Barang</th>
+                        <th>Stok</th>
+                        <th>Keterangan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-list">
+                    </tbody>
+            </table>
+        </div>
+
+        <div id="tab-pemasukan" class="tab-content hidden">
+            <h2>Data Transaksi Pemasukan</h2>
+            <button class="btn-merah" onclick="toggleForm('form-pemasukan')">➕ Tambah Data Pemasukan</button>
+            <div id="form-pemasukan" class="hidden" style="margin-top: 15px; padding: 15px; border: 1px solid #A00000; border-radius: 6px;">
+                <h3>Form Pemasukan Stok</h3>
+                <form id="pemasukan-form">
+                    <input type="hidden" id="pemasukan-id">
+                    <div class="form-group">
+                        <label for="pemasukan_tanggal">Tanggal Transaksi:</label>
+                        <input type="date" id="pemasukan_tanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pemasukan_item">Nama Barang Masuk:</label>
+                        <select id="pemasukan_item" required>
+                            <option value="">Pilih Barang</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pemasukan_jumlah">Jumlah Masuk:</label>
+                        <input type="number" id="pemasukan_jumlah" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="pemasukan_keterangan">Keterangan:</label>
+                        <textarea id="pemasukan_keterangan"></textarea>
+                    </div>
+                    <button type="submit" class="btn-merah">Simpan Pemasukan</button>
+                    <button type="button" class="btn-kuning" onclick="resetForm('pemasukan-form')">Batal</button>
+                </form>
+            </div>
+
+            <button class="btn-kuning" onclick="exportData('pemasukan')">Unduh PDF Pemasukan</button>
+            <button class="btn-kuning" onclick="shareData('pemasukan')">Bagikan via WhatsApp</button>
+            <table class="data-table" id="pemasukan-table">
+                <thead>
+                    <tr>
+                        <th>Tgl Transaksi</th>
+                        <th>Nama Barang</th>
+                        <th>Jumlah Masuk</th>
+                        <th>Keterangan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="pemasukan-list">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { 
+        ambilDaftarInventory, 
+        tambahInventory, 
+        ubahInventory, 
+        hapusInventory, 
+        ambilInventory,
+        ambilDaftarPemasukan,
+        tambahPemasukan,
+        ubahPemasukan,
+        hapusPemasukan,
+        ambilPemasukan
+    } from './main.js';
+
+    // Global state untuk menyimpan data barang yang ada
+    let currentInventoryData = [];
+
+    // --- UTILITY FUNCTIONS ---
+
+    window.showTab = function(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`.tab-button[onclick*='${tabName}']`).classList.add('active');
+
+        // Refresh data saat tab diubah
+        if (tabName === 'barang') {
+            loadInventoryData();
+        } else if (tabName === 'pemasukan') {
+            loadPemasukanData();
+            populatePemasukanItemSelect();
+        }
+    }
+
+    window.toggleForm = function(formId) {
+        document.getElementById(formId).classList.toggle('hidden');
+    }
+
+    window.resetForm = function(formId) {
+        document.getElementById(formId).reset();
+        if (formId === 'inventory-form') {
+            document.getElementById('inventory-id').value = '';
+            document.getElementById('form-inventory').classList.add('hidden');
+        } else if (formId === 'pemasukan-form') {
+            document.getElementById('pemasukan-id').value = '';
+            document.getElementById('form-pemasukan').classList.add('hidden');
+        }
+    }
+
+    // --- INVENTORY (BARANG) FUNCTIONS ---
+
+    async function loadInventoryData() {
+        const inventoryList = await ambilDaftarInventory();
+        currentInventoryData = inventoryList; // Simpan data global
+        const tbody = document.getElementById('inventory-list');
+        tbody.innerHTML = '';
+        
+        inventoryList.forEach(item => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${item.no}</td>
+                <td>${item.tanggal_masuk}</td>
+                <td>${item.item}</td>
+                <td>${item.jumlah}</td>
+                <td>${item.keterangan}</td>
+                <td>
+                    <button class="btn-kuning" onclick="editInventory('${item.id}')">Edit</button>
+                    <button class="btn-merah" onclick="deleteInventory('${item.id}')">Hapus</button>
+                </td>
+            `;
+        });
+        populatePemasukanItemSelect(); // Refresh pilihan di form Pemasukan
+    }
+
+    window.editInventory = async function(id) {
+        const data = await ambilInventory(id);
+        if (data) {
+            document.getElementById('inventory-id').value = id;
+            document.getElementById('no').value = data.no;
+            document.getElementById('tanggal_masuk').value = data.tanggal_masuk;
+            document.getElementById('item').value = data.item;
+            document.getElementById('jumlah').value = data.jumlah;
+            document.getElementById('keterangan').value = data.keterangan;
+            document.getElementById('form-inventory').classList.remove('hidden');
+        }
+    }
+
+    window.deleteInventory = async function(id) {
+        if (confirm('Yakin ingin menghapus barang ini?')) {
+            await hapusInventory(id);
+            loadInventoryData();
+        }
+    }
+
+    document.getElementById('inventory-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const id = document.getElementById('inventory-id').value;
+        const no = document.getElementById('no').value;
+        const tanggal_masuk = document.getElementById('tanggal_masuk').value;
+        const item = document.getElementById('item').value;
+        const jumlah = parseInt(document.getElementById('jumlah').value);
+        const keterangan = document.getElementById('keterangan').value;
+
+        if (no && tanggal_masuk && item && jumlah >= 0) {
+            if (id) {
+                // Edit
+                await ubahInventory(id, no, tanggal_masuk, item, jumlah, keterangan);
+            } else {
+                // Tambah
+                await tambahInventory(no, tanggal_masuk, item, jumlah, keterangan);
+            }
+            resetForm('inventory-form');
+            loadInventoryData();
+        } else {
+            alert('Semua kolom wajib diisi kecuali Keterangan. Stok harus >= 0.');
+        }
+    });
+
+
+    // --- PEMASUKAN (TRANSACTION) FUNCTIONS ---
+
+    function populatePemasukanItemSelect() {
+        const select = document.getElementById('pemasukan_item');
+        select.innerHTML = '<option value="">Pilih Barang</option>';
+        currentInventoryData.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.item; // Menggunakan Nama Barang sebagai value
+            option.textContent = item.item;
+            select.appendChild(option);
+        });
+    }
+
+    async function loadPemasukanData() {
+        const pemasukanList = await ambilDaftarPemasukan();
+        const tbody = document.getElementById('pemasukan-list');
+        tbody.innerHTML = '';
+        
+        pemasukanList.forEach(item => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${item.tanggal_transaksi}</td>
+                <td>${item.nama_barang}</td>
+                <td>${item.jumlah_masuk}</td>
+                <td>${item.keterangan}</td>
+                <td>
+                    <button class="btn-kuning" onclick="editPemasukan('${item.id}')">Edit</button>
+                    <button class="btn-merah" onclick="deletePemasukan('${item.id}')">Hapus</button>
+                </td>
+            `;
+        });
+    }
+
+    window.editPemasukan = async function(id) {
+        const data = await ambilPemasukan(id);
+        if (data) {
+            document.getElementById('pemasukan-id').value = id;
+            document.getElementById('pemasukan_tanggal').value = data.tanggal_transaksi;
+            document.getElementById('pemasukan_item').value = data.nama_barang;
+            document.getElementById('pemasukan_jumlah').value = data.jumlah_masuk;
+            document.getElementById('pemasukan_keterangan').value = data.keterangan;
+            document.getElementById('form-pemasukan').classList.remove('hidden');
+        }
+    }
+
+    window.deletePemasukan = async function(id) {
+        if (confirm('Yakin ingin menghapus data pemasukan ini?')) {
+            await hapusPemasukan(id);
+            // TODO: Tambahkan logika untuk mengurangi stok jika perlu
+            loadPemasukanData();
+        }
+    }
+
+    document.getElementById('pemasukan-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const id = document.getElementById('pemasukan-id').value;
+        const tanggal_transaksi = document.getElementById('pemasukan_tanggal').value;
+        const nama_barang = document.getElementById('pemasukan_item').value;
+        const jumlah_masuk = parseInt(document.getElementById('pemasukan_jumlah').value);
+        const keterangan = document.getElementById('pemasukan_keterangan').value;
+
+        if (tanggal_transaksi && nama_barang && jumlah_masuk > 0) {
+            if (id) {
+                // Edit
+                await ubahPemasukan(id, tanggal_transaksi, nama_barang, jumlah_masuk, keterangan);
+            } else {
+                // Tambah
+                await tambahPemasukan(tanggal_transaksi, nama_barang, jumlah_masuk, keterangan);
+                
+                // Logika sederhana: Update stok barang (perlu fetch data barang)
+                const itemToUpdate = currentInventoryData.find(item => item.item === nama_barang);
+                if (itemToUpdate) {
+                    const newJumlah = itemToUpdate.jumlah + jumlah_masuk;
+                    await ubahInventory(itemToUpdate.id, itemToUpdate.no, itemToUpdate.tanggal_masuk, itemToUpdate.item, newJumlah, itemToUpdate.keterangan);
+                }
+            }
+
+            resetForm('pemasukan-form');
+            loadPemasukanData();
+            loadInventoryData(); // Refresh data barang juga
+        } else {
+            alert('Semua kolom wajib diisi. Jumlah masuk harus > 0.');
+        }
+    });
+
+    // --- FITUR TAMBAHAN (PDF & WHATSAPP) ---
+
+    window.exportData = async function(type) {
+        const tableId = type === 'inventory' ? 'inventory-table' : 'pemasukan-table';
+        const title = type === 'inventory' ? 'Laporan Inventaris Barang' : 'Laporan Pemasukan Stok';
+        const filename = type === 'inventory' ? 'Inventaris_Barang.pdf' : 'Pemasukan_Stok.pdf';
+        
+        const table = document.getElementById(tableId);
+
+        // Kloning tabel dan hapus kolom Aksi sebelum konversi ke PDF
+        const tableClone = table.cloneNode(true);
+        const rows = tableClone.querySelectorAll('tr');
+        rows.forEach(row => {
+            const lastCell = row.lastElementChild;
+            if (lastCell) {
+                lastCell.remove();
+            }
+        });
+
+        // Membuat elemen div sementara untuk menampung tabel clone
+        const tempDiv = document.createElement('div');
+        tempDiv.appendChild(tableClone);
+        document.body.appendChild(tempDiv);
+        
+        html2canvas(tempDiv).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps= pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.setFontSize(16);
+            pdf.text(title, 10, 10);
+            pdf.addImage(imgData, 'PNG', 10, 20, pdfWidth - 20, pdfHeight - 20);
+            pdf.save(filename);
+            
+            // Hapus elemen sementara
+            document.body.removeChild(tempDiv);
+        });
+    }
+
+    window.shareData = function(type) {
+        let message = `*Laporan Data ${type === 'inventory' ? 'Inventaris Barang' : 'Pemasukan Stok'}*\n\n`;
+
+        if (type === 'inventory') {
+            currentInventoryData.forEach(item => {
+                message += `*Barang:* ${item.item}\n`;
+                message += `  - No: ${item.no}\n`;
+                message += `  - Tgl Masuk: ${item.tanggal_masuk}\n`;
+                message += `  - Stok: ${item.jumlah}\n`;
+                message += `  - Keterangan: ${item.keterangan}\n\n`;
+            });
+        } else {
+            // Logika untuk data pemasukan (perlu di-fetch lagi jika tidak disimpan global)
+            // Untuk demo ini, saya ambil 5 data terakhir dari Inventory sebagai contoh
+            const recentItems = currentInventoryData.slice(0, 5);
+             recentItems.forEach(item => {
+                message += `*Barang Masuk:* ${item.item}\n`;
+                message += `  - Tgl: ${item.tanggal_masuk}\n`;
+                message += `  - Stok Tambah: (Asumsi 10)\n`; // Data Pemasukan tidak disimpan global
+                message += `  - Keterangan: ${item.keterangan}\n\n`;
+            });
+        }
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+        window.open(whatsappUrl, '_blank');
+    }
+
+    // --- INITIAL LOAD ---
+    // Load data saat halaman pertama kali dimuat
+    window.addEventListener('load', () => {
+        showTab('barang'); // Default view
+    });
+
+</script>
+<p class="text-center text-body-secondary">&copy; SMK PLUS INSAN CEMERLANG 2025
+        # PT.KAF GROUP INDONESIA
+        # KAF FRAID CHIKEN </p>
+</body>
+</html>

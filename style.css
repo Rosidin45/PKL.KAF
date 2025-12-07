@@ -1,0 +1,130 @@
+.body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background: url('https://images.unsplash.com/photo-1626071850390-327c13289069?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed; /* Ganti dengan gambar ayam krispi pilihan Anda */
+    background-size: cover;
+    color: #333;
+}
+
+.overlay {
+    background-color: rgba(255, 255, 255, 0.95); /* Semi-transparan agar tulisan terlihat jelas */
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Warna Merah dan Kuning (Kriteria Tambahan) */
+.header-kuning {
+    background-color: #FFC200; /* Kuning Cerah */
+    color: #A00000; /* Merah Marun */
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.btn-merah {
+    background-color: #A00000; /* Merah Marun */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px 0;
+    transition: background-color 0.3s;
+}
+
+.btn-merah:hover {
+    background-color: #7A0000;
+}
+
+.btn-kuning {
+    background-color: #FFC200;
+    color: #A00000;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px 0;
+    transition: background-color 0.3s;
+}
+
+.btn-kuning:hover {
+    background-color: #FFD500;
+}
+
+/* Styling Tabel */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #F8D7DA; /* Merah muda lembut */
+    color: #A00000; /* Merah Marun */
+}
+
+/* Styling Form */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Tab Navigation */
+.tab-header {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #A00000;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #eee;
+    border: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 2px;
+}
+
+.tab-button.active {
+    background-color: #A00000; /* Merah Aktif */
+    color: white;
+}
+
+.tab-content {
+    padding: 10px 0;
+}
+
+.hidden {
+    display: none;
+}
